@@ -4,5 +4,5 @@ numpy
 pandas
 requests
 flask
-pysqlite3-binary
 pymongo
+mysql-connector-python
