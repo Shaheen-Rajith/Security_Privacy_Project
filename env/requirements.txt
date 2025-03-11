@@ -1,0 +1,8 @@
+jupyter
+jupyterlab
+numpy
+pandas
+requests
+flask
+pysqlite3-binary
+pymongo
