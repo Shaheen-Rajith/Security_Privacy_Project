@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <title>Checkout</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background-color: #f4f4f4;
+                margin: 0;
+            }
+            .container {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+                text-align: center;
+                width: 300px;
+            }
+            input {
+                display: block;
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+            button {
+                background-color: #ff9900;
+                color: white;
+                border: none;
+                padding: 10px;
+                width: 49%;
+                cursor: pointer;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+            button:hover {
+                background-color: #cc7b00;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Checkout</h2>
+            <p><strong>Total Price: </strong> ${{val_price}}</p>
+
+            <form action="/checkout" method="post">
+                <input type="text" name="card_num" placeholder="Card Number" required>
+                <input type="text" name="cvv" placeholder="CVV" required>
+                <input type="text" name="address" placeholder="Address" required>
+                <input type="text" name="zip_code" placeholder="ZIP Code" required>
+                <button type="submit">Confirm Order</button>
+            </form>
+        </div>
+    </body>
+</html>
