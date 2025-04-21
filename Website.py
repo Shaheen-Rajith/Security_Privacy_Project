@@ -1,4 +1,7 @@
 import json
+import os
+import threading
+import time
 
 import mysql.connector
 from flask import Flask, flash, redirect, render_template, request, session, url_for
@@ -151,4 +154,4 @@ def base():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)

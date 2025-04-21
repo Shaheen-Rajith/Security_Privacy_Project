@@ -1,0 +1,128 @@
+<html>
+
+<head>
+    <title>Stereotypical Italian Name Luxury Boutique Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #ff9900;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 49%;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        button:hover:enabled {
+            background-color: #cc7b00;
+        }
+
+        #puzzleStatus {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Welcome to Stereotypical Italian Name Luxury Boutique</h2>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <p id="puzzleStatus">Solving Puzzle...</p>
+
+        <form action="/" method="post" id="loginForm">
+            <input type="text" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Password" required>
+
+            <!-- Hidden fields for puzzle -->
+            <input type="hidden" name="puzzle_c" id="puzzle_c">
+            <input type="hidden" name="puzzle_x" id="puzzle_x">
+
+            <button onclick="window.location.href='/register'" type="button">New User Sign Up</button>
+            <button type="submit" id="loginBtn" disabled>Login</button>
+        </form>
+    </div>
+
+    <script>
+        const challenge = "{{ challenge }}";
+        document.getElementById("puzzle_c").value = challenge;
+
+        function toCharString(byteArray) {
+            return String.fromCharCode.apply(null, byteArray);
+        }
+
+        async function solvePuzzle() {
+            const encoder = new TextEncoder();
+            let attempts = 0;
+
+            while (true) {
+                let x = crypto.getRandomValues(new Uint8Array(4));
+                let input = encoder.encode(challenge + toCharString(x));
+                let hashBuffer = await crypto.subtle.digest("SHA-1", input);
+                let hashBytes = new Uint8Array(hashBuffer);
+
+                // check if the last 18 bits are zero
+                let last18bits =
+                    (hashBytes[hashBytes.length - 3] << 16) |
+                    (hashBytes[hashBytes.length - 2] << 8) |
+                    (hashBytes[hashBytes.length - 1]);
+
+                if ((last18bits & 0x3FFFF) === 0) {
+                    document.getElementById("puzzle_x").value = toCharString(x);
+                    document.getElementById("loginBtn").disabled = false;
+                    document.getElementById("puzzleStatus").innerText = "Puzzle Solved!";
+                    break;
+                }
+                attempts++;
+            }
+        }
+
+        // Start solving the puzzle
+        solvePuzzle();
+    </script>
+</body>
+
+</html>

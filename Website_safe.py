@@ -41,7 +41,7 @@ def create_server_connection(host_name, user_name, user_password):
 
 
 server_connection = create_server_connection(
-    "localhost", "root", "Mysql123lykflst!"
+    "localhost", "root", "xxx"
 )  # Hardcoded, varies per person
 cursor = server_connection.cursor()
 
@@ -159,7 +159,6 @@ def after_request(response):
 
 # Main Login Page
 @app.route("/", methods=["GET", "POST"])
-# @limiter.limit("5 per minute")
 def home():
     # # train DoS detection model
     # trainset_file = "./dataset_use.csv"
@@ -226,7 +225,7 @@ def home():
             return redirect(url_for("home"))
     # Displaying Login Page upon entering the site
     challenge = base64.b64encode(os.urandom(16)).decode()
-    return render_template("login.html", challenge=challenge)
+    return render_template("login_safe.html", challenge=challenge)
 
 
 # New User Registration Page
