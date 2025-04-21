@@ -1,3 +1,14 @@
+"""
+Module Name: DoS_attack.py
+
+This module implements a Denial of Service (DoS) attack on a target URL
+by sending multiple login requests.
+
+Functions:
+- dos_request: Sends a login request to the website with the given payload and headers.
+- dos_attack: Implements a DoS attack on the target URL by sending multiple login requests.
+"""
+
 import csv
 import os
 import threading
@@ -7,7 +18,13 @@ import requests
 
 
 def dos_request(url, payload, headers):
+    """Send a login request to the website with the given payload and headers.
 
+    Args:
+        url (str): The URL of the website.
+        payload (str): The payload to send in the request.
+        headers (dict): The headers to include in the request.
+    """
     num_requests = 300
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     output_file = os.path.join(project_root, "Resource_Usage")
@@ -52,8 +69,8 @@ def dos_request(url, payload, headers):
             break
 
 
-def Dos_attack():
-
+def dos_attack():
+    """Implement a DoS attack on the target URL by sending multiple login requests."""
     # target url (local host) for DoS attack
     url = "http://127.0.0.1:5000/"
 
@@ -99,5 +116,5 @@ def Dos_attack():
 
 if __name__ == "__main__":
     # start the DoS attack
-    Dos_attack()
+    dos_attack()
     print("DoS attack finished.")

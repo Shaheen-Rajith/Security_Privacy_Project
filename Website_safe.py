@@ -1,3 +1,10 @@
+"""
+File Name: Website_safe.py
+
+This file implements a website that can effectively defend against DoS attacks.
+It includes a login page, registration page, shop page, and checkout page.
+"""
+
 import base64
 import hashlib
 import json
@@ -5,14 +12,12 @@ import os
 import pickle
 import threading
 import time
-from collections import defaultdict
 
 import mysql.connector
 import numpy as np
 import pandas as pd
 import psutil
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
-from flask_limiter.util import get_remote_address
 
 from defence_system.dos_defence import (
     block_strategy,
@@ -29,6 +34,14 @@ app.secret_key = "totallysecretkey"
 
 # Setting up connection with SQL Server
 def create_server_connection(host_name, user_name, user_password):
+    """Create a connection to the MySQL server.
+    Args:
+        host_name (str): The hostname of the MySQL server.
+        user_name (str): The username to connect to the MySQL server.
+        user_password (str): The password for the username.
+    Returns:
+        connection: A MySQL connection object.
+    """
     connection = None
     try:
         connection = mysql.connector.connect(
@@ -48,6 +61,7 @@ cursor = server_connection.cursor()
 
 # Setting up Databases incase they dont already exist
 def init_db():
+    """Initialize the database and create the necessary tables."""
     # check if database exists
     cursor.execute(
         """
@@ -88,6 +102,7 @@ init_db()
 
 
 def monitoring():
+    """Monitor the CPU and memory usage of the process and save it to a CSV file."""
     p = psutil.Process(os.getpid())
 
     # create a folder to store resource usage data
@@ -123,6 +138,8 @@ def monitoring():
 # Start monitoring
 @app.before_request
 def start_monitoring():
+    """define the function to monitor the CPU and memory usage of the process
+    and check if the IP is in the blacklist"""
     monitoring_thread = threading.Thread(target=monitoring)
     monitoring_thread.daemon = True
     monitoring_thread.start()
@@ -137,6 +154,12 @@ def start_monitoring():
 
 @app.after_request
 def after_request(response):
+    """define the function to record the request and response data
+    Args:
+        response: The response object.
+    Returns:
+        response: The modified response object.
+    """
     if request.method != "POST":
         return response
     ip = request.remote_addr
@@ -160,6 +183,10 @@ def after_request(response):
 # Main Login Page
 @app.route("/", methods=["GET", "POST"])
 def home():
+    """Main login page for the application.
+    Returns:
+        Rendered HTML template for the login page.
+    """
     # # train DoS detection model
     # trainset_file = "./dataset_use.csv"
     # build_dos_detection(trainset_file)
@@ -231,6 +258,10 @@ def home():
 # New User Registration Page
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    """New user registration page.
+    Returns:
+        Rendered HTML template for the registration page.
+    """
     if request.method == "POST":
         reg_email = request.form["email"]
         reg_password = request.form["password"]
@@ -249,6 +280,10 @@ def register():
 # Shop Page after Logging in Successfully, THE ONLY THING LEFT
 @app.route("/shop", methods=["GET", "POST"])
 def shop():
+    """Shop page for the application.
+    Returns:
+        Rendered HTML template for the shop page.
+    """
     return """<p> WORK IN PROGRESS, COME BACK LATER :) </p>
     <button type="button" onclick="window.location.href='/checkout'">Checkout</button>
     """
@@ -257,6 +292,10 @@ def shop():
 # Checkout Page
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
+    """Checkout page for the application.
+    Returns:
+        Rendered HTML template for the checkout page.
+    """
     email = session["user_email"]
     price = session["price"]
     if request.method == "POST":
