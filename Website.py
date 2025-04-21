@@ -64,6 +64,21 @@ def init_db():
         )
     """
     )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            email VARCHAR(50) NOT NULL,
+            price INT NOT NULL,
+            card_num VARCHAR(16) NOT NULL,
+            cvv VARCHAR(3) NOT NULL,
+            address VARCHAR(50) NOT NULL,
+            zip_code VARCHAR(7) NOT NULL
+            )
+    """
+    )
+
     server_connection.commit()
 
 
@@ -181,7 +196,7 @@ def checkout():
             return redirect(url_for("shop"))
         except mysql.connector.Error as err:
             print(f"Error: {err}")
-    # Displaying Registration Page for new Users
+    # Displaying Checkout Page
     return render_template("checkout.html", val_price=price)
 
 
