@@ -18,6 +18,10 @@ import numpy as np
 import pandas as pd
 import psutil
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import random
 
 from defence_system.dos_defence import (
     block_strategy,
@@ -54,7 +58,7 @@ def create_server_connection(host_name, user_name, user_password):
 
 
 server_connection = create_server_connection(
-    "localhost", "root", "xxx"
+    "localhost", "root", "12345"
 )  # Hardcoded, varies per person
 cursor = server_connection.cursor()
 
@@ -114,6 +118,29 @@ def init_db():
 
 
 init_db()
+
+def send_otp_email(recipient_email, otp):
+    sender_email = "giorgio.linguini.1@gmail.com"  # Replace with your Gmail
+    sender_password = "jzlj votm dpdy jmkn"
+    subject = "Your OTP for Giorgio Linguini Login"
+    body = f"Hello,\n\nYour one time password (OTP) is: {otp}\n\nPlease enter this code to complete your login.\n\nGiorgio Linguini"
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = recipient_email
+    msg["Subject"] = subject
+
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+        server.quit()
+        print("OTP email sent successfully.")
+    except Exception as e:
+        print(f"Failed to send OTP email: {e}")
 
 
 def monitoring():
@@ -255,9 +282,11 @@ def home():
             if user:
                 session["user_Id"] = user[0]
                 session["user_email"] = user[1]
-                session["price"] = 39  # TEMP
-                flash("Successfully Logged in", "success")
-                return redirect(url_for("shop"))
+                otp = str(random.randint(100000, 999999))
+                session["otp"] = otp
+                send_otp_email(log_email, otp)
+                flash("OTP sent to your email")
+                return redirect(url_for("otp"))
             else:
                 flash("Invalid Email-id or Password", "error")
                 # print("INVALID Email / Password Combination")
@@ -268,6 +297,22 @@ def home():
     # Displaying Login Page upon entering the site
     challenge = base64.b64encode(os.urandom(16)).decode()
     return render_template("login_safe.html", challenge=challenge)
+
+
+@app.route("/otp", methods=["GET", "POST"])
+def otp():
+    if "otp" not in session:
+        return redirect(url_for("home"))
+    if request.method == "POST":
+        entered_otp = request.form["otp"]
+        if entered_otp == session["otp"]:
+            session.pop("otp", None)
+            flash("OTP verified successfully!", "success")
+            return redirect(url_for("shop"))
+        else:
+            flash("Incorrect OTP. Try again.", "error")
+
+    return render_template("otp.html")
 
 
 # New User Registration Page
