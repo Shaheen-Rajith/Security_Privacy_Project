@@ -51,15 +51,21 @@
 <body>
     <div class="container">
         <h2>Checkout</h2>
-        <p><strong>Total Price: </strong> ${{val_price}}</p>
+        <p><strong>Total Price: </strong> £{{val_price}}</p>
 
         <form action="/checkout" method="post">
             <input type="text" name="card_num" placeholder="Card Number" required>
             <input type="text" name="cvv" placeholder="CVV" required>
             <input type="text" name="address" placeholder="Address" required>
             <input type="text" name="zip_code" placeholder="ZIP Code" required>
-            <button type="submit">Confirm Order</button>
+            <button type="submit" onclick="window.location.href='/shop'">Confirm Order</button>
         </form>
+
+        <form method="post">
+            <input type="hidden" name="go_back" value="1">
+            <button type="submit" style="background-color: #009933; width: 150px;">Go Back</button>
+        </form>
+
     </div>
 </body>
 

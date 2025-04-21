@@ -24,7 +24,7 @@ def create_server_connection(host_name, user_name, user_password):
 
 
 server_connection = create_server_connection(
-    "localhost", "root", "xxx"
+    "localhost", "root", "12345"
 )  # Hardcoded, varies per person
 cursor = server_connection.cursor()
 
@@ -73,6 +73,7 @@ init_db()
 # Main Login Page
 @app.route("/", methods=["GET", "POST"])
 def home():
+    session.clear()
     if request.method == "POST":
         log_email = request.form["email"]
         log_password = request.form["password"]
@@ -84,7 +85,6 @@ def home():
             if user:
                 session["user_Id"] = user[0]
                 session["user_email"] = user[1]
-                session["price"] = 39  # TEMP
                 flash("Successfully Logged in", "success")
                 return redirect(url_for("shop"))
             else:
@@ -119,17 +119,55 @@ def register():
 # Shop Page after Logging in Successfully, THE ONLY THING LEFT
 @app.route("/shop", methods=["GET", "POST"])
 def shop():
-    return """<p> WORK IN PROGRESS, COME BACK LATER :) </p>
-    <button type="button" onclick="window.location.href='/checkout'">Checkout</button>
-    """
+    if "user_Id" not in session:
+        return redirect(url_for('home'))
+    
+    items = [
+        {"id": 1, "name": "White Satin Shirt", "price": 120},
+        {"id": 2, "name": "Black Silk Shirt", "price": 125},
+        {"id": 3, "name": "Black Polo Shirt", "price": 120},
+        {"id": 4, "name": "Gray Cropped Blazer", "price": 550},
+        {"id": 5, "name": "Tan Single Breasted Blazer", "price": 450},
+        {"id": 6, "name": "Red Leather Blouson", "price": 650},
+        {"id": 7, "name": "White Corduroy Trousers", "price": 180},
+        {"id": 8, "name": "White Denim Jorts", "price": 110},
+        {"id": 9, "name": "Leather Card Wallet", "price": 145},
+        {"id": 10, "name": "Red Leather Belt", "price": 150},
+    ]
+
+    if "cart" not in session:
+        session["cart"] = []
+        session["price_t"] = 0
+
+    if request.method == 'POST' and 'clear_cart' in request.form:
+       session["cart"] = []
+       session["price_t"] = 0
+       session.modified = True
+       return redirect(url_for('shop'))
+
+
+    if request.method == 'POST':
+        item_id = int(request.form['item_id'])
+        for item in items:
+            if item["id"] == item_id:
+                session["cart"].append(item)
+                session["price_t"] += item["price"]
+                session.modified = True
+                break
+        return redirect(url_for('shop'))
+    
+    return render_template("shop.html", items=items, price_t=session.get("price_t", 0))
+
 
 
 # Checkout Page
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
     email = session["user_email"]
-    price = session["price"]
+    price = session["price_t"]
     if request.method == "POST":
+        if 'go_back' in request.form:
+            return redirect(url_for('shop'))
         card_num = request.form["card_num"]
         cvv = request.form["cvv"]
         address = request.form["address"]
