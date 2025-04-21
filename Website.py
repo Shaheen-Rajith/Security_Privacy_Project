@@ -116,7 +116,7 @@ def register():
     return render_template("register.html")
 
 
-# Shop Page after Logging in Successfully, THE ONLY THING LEFT
+# Shop Page after Logging in Successfully
 @app.route("/shop", methods=["GET", "POST"])
 def shop():
     if "user_Id" not in session:

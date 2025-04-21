@@ -277,28 +277,58 @@ def register():
     return render_template("register.html")
 
 
-# Shop Page after Logging in Successfully, THE ONLY THING LEFT
+# Shop Page after Logging in Successfully
 @app.route("/shop", methods=["GET", "POST"])
 def shop():
-    """Shop page for the application.
-    Returns:
-        Rendered HTML template for the shop page.
-    """
-    return """<p> WORK IN PROGRESS, COME BACK LATER :) </p>
-    <button type="button" onclick="window.location.href='/checkout'">Checkout</button>
-    """
+    if "user_Id" not in session:
+        return redirect(url_for('home'))
+    
+    items = [
+        {"id": 1, "name": "White Satin Shirt", "price": 120},
+        {"id": 2, "name": "Black Silk Shirt", "price": 125},
+        {"id": 3, "name": "Black Polo Shirt", "price": 120},
+        {"id": 4, "name": "Gray Cropped Blazer", "price": 550},
+        {"id": 5, "name": "Tan Single Breasted Blazer", "price": 450},
+        {"id": 6, "name": "Red Leather Blouson", "price": 650},
+        {"id": 7, "name": "White Corduroy Trousers", "price": 180},
+        {"id": 8, "name": "White Denim Jorts", "price": 110},
+        {"id": 9, "name": "Leather Card Wallet", "price": 145},
+        {"id": 10, "name": "Red Leather Belt", "price": 150},
+    ]
+
+    if "cart" not in session:
+        session["cart"] = []
+        session["price_t"] = 0
+
+    if request.method == 'POST' and 'clear_cart' in request.form:
+       session["cart"] = []
+       session["price_t"] = 0
+       session.modified = True
+       return redirect(url_for('shop'))
+
+
+    if request.method == 'POST':
+        item_id = int(request.form['item_id'])
+        for item in items:
+            if item["id"] == item_id:
+                session["cart"].append(item)
+                session["price_t"] += item["price"]
+                session.modified = True
+                break
+        return redirect(url_for('shop'))
+    
+    return render_template("shop.html", items=items, price_t=session.get("price_t", 0))
+
 
 
 # Checkout Page
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
-    """Checkout page for the application.
-    Returns:
-        Rendered HTML template for the checkout page.
-    """
     email = session["user_email"]
-    price = session["price"]
+    price = session["price_t"]
     if request.method == "POST":
+        if 'go_back' in request.form:
+            return redirect(url_for('shop'))
         card_num = request.form["card_num"]
         cvv = request.form["cvv"]
         address = request.form["address"]
