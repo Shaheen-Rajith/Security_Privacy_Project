@@ -407,7 +407,7 @@ def plot_confusion_matrix(y_test, predictions):
     """
     cm = confusion_matrix(y_test, predictions, labels=[0, 1])
     cm_display_labels = ["Normal", "DoS"]
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots(figsize=(7, 6))
     cm_display = ConfusionMatrixDisplay(
         confusion_matrix=cm, display_labels=cm_display_labels
     )

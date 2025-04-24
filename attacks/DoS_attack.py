@@ -62,7 +62,7 @@ def dos_request(url, payload, headers):
                 # write the data
                 writer.writerow([time.time(), response.status_code, time_taken])
             print(f"Sending DoS request, Status Code: {response.status_code}")
-            time.sleep(0.5)  # Adjust the sleep time as needed 0.1 seconds
+            time.sleep(0.5)  # Adjust the sleep time as needed 0.5 seconds
             num_requests -= 1
         except Exception as e:
             print(f"An Error Occurred: {e}")

