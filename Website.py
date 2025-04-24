@@ -4,6 +4,7 @@ import threading
 import time
 
 import mysql.connector
+import psutil
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 
 app = Flask(__name__)
@@ -85,6 +86,52 @@ def init_db():
 init_db()
 
 
+def monitoring():
+    """Monitor the CPU and memory usage of the process and save it to a CSV file."""
+    p = psutil.Process(os.getpid())
+
+    # create a folder to store resource usage data
+    resource_usage_dir = "./Resource_Usage"
+    if not os.path.exists(resource_usage_dir):
+        os.makedirs(resource_usage_dir)
+
+    with open(
+        os.path.join(resource_usage_dir, "resource_usage.csv"),
+        "w",
+        encoding="utf-8",
+    ) as f:
+        f.write("timestamp, cpu_usage, memory_usage\n")
+
+    while True:
+        # get the current CPU and memory usage
+        cpu_current = p.cpu_percent(interval=0.1)
+        memory_current = p.memory_info().rss / (1024**2)  # convert to MB
+
+        # get the current timestamp
+        timestamp = time.time()
+
+        # write the data to the file
+        with open(
+            os.path.join(resource_usage_dir, "resource_usage.csv"),
+            "a",
+            encoding="utf-8",
+        ) as f:
+            f.write(f"{timestamp}, {cpu_current}, {memory_current}\n")
+
+        # sleep for 1 second
+        time.sleep(0.01)
+
+
+@app.before_request
+def start_monitoring():
+    """define the function to monitor the CPU and memory usage of the process
+    and check if the IP is in the blacklist"""
+    monitoring_thread = threading.Thread(target=monitoring)
+    monitoring_thread.daemon = True
+    monitoring_thread.start()
+    print("Monitoring started")
+
+
 # Main Login Page
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -135,8 +182,8 @@ def register():
 @app.route("/shop", methods=["GET", "POST"])
 def shop():
     if "user_Id" not in session:
-        return redirect(url_for('home'))
-    
+        return redirect(url_for("home"))
+
     items = [
         {"id": 1, "name": "White Satin Shirt", "price": 120},
         {"id": 2, "name": "Black Silk Shirt", "price": 125},
@@ -154,25 +201,23 @@ def shop():
         session["cart"] = []
         session["price_t"] = 0
 
-    if request.method == 'POST' and 'clear_cart' in request.form:
-       session["cart"] = []
-       session["price_t"] = 0
-       session.modified = True
-       return redirect(url_for('shop'))
+    if request.method == "POST" and "clear_cart" in request.form:
+        session["cart"] = []
+        session["price_t"] = 0
+        session.modified = True
+        return redirect(url_for("shop"))
 
-
-    if request.method == 'POST':
-        item_id = int(request.form['item_id'])
+    if request.method == "POST":
+        item_id = int(request.form["item_id"])
         for item in items:
             if item["id"] == item_id:
                 session["cart"].append(item)
                 session["price_t"] += item["price"]
                 session.modified = True
                 break
-        return redirect(url_for('shop'))
-    
-    return render_template("shop.html", items=items, price_t=session.get("price_t", 0))
+        return redirect(url_for("shop"))
 
+    return render_template("shop.html", items=items, price_t=session.get("price_t", 0))
 
 
 # Checkout Page
@@ -181,8 +226,8 @@ def checkout():
     email = session["user_email"]
     price = session["price_t"]
     if request.method == "POST":
-        if 'go_back' in request.form:
-            return redirect(url_for('shop'))
+        if "go_back" in request.form:
+            return redirect(url_for("shop"))
         card_num = request.form["card_num"]
         cvv = request.form["cvv"]
         address = request.form["address"]
