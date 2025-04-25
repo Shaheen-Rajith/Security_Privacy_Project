@@ -16,7 +16,7 @@ import threading
 import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
+from flask import Flask, flash, g, redirect, render_template, request, session, url_for
 import mysql.connector
 import numpy as np
 import pandas as pd
@@ -29,7 +29,7 @@ from defence_system.dos_defence import (
     ip_status,
     record_num_requests,
 )
-from flask import Flask, flash, g, redirect, render_template, request, session, url_for
+
 
 app = Flask(__name__)
 app.secret_key = "totallysecretkey"
@@ -120,8 +120,8 @@ init_db()
 
 
 def send_otp_email(recipient_email, otp):
-    sender_email = "lyikun717@gmail.com"  # Replace with your Gmail
-    sender_password = "isjq cqng kmpr sclk"
+    sender_email = "giorgio.linguini.1@gmail.com"  # Custom Email
+    sender_password = "wnwm euzt ksiw qufu"
     subject = "Your OTP for Giorgio Linguini Login"
     body = f"Hello,\n\nYour one time password (OTP) is: {otp}\n\nPlease enter this code to complete your login.\n\nGiorgio Linguini"
 
@@ -251,7 +251,7 @@ def home():
 
         # # test features collected from CIC-IDS2017
         # features_path = "./test_data.csv"
-        # features_data = pd.read_csv(features_path, header=None)
+        # features_data = pd.read_csv(feat455860ures_path, header=None)
         # features = np.array(features_data.iloc[0, :])
 
         # check if the request is a DoS attack
